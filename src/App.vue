@@ -97,7 +97,7 @@
         }).catch((res) => {
           alert("退出异常~~");
         });
-
+        
       }
     }
   };
@@ -109,7 +109,7 @@
     height: 100vh;
     width: 100%;
     overflow: hidden;
-    /*background-image: url("~@/assets/imgs/background/bgimg1.jpg"); !*css中使用别名'~@'*!*/
+    background-image: url("~@/assets/imgs/background/bgimg1.jpg"); /*!*css中使用别名'~@'*!*/
     background-size: cover; /*设置背景图充满屏幕*/
     background-repeat: no-repeat; /*设置背景图不重复*/
   }

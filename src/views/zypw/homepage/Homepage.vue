@@ -1,7 +1,6 @@
 <template>
   <div>
     <div id="homepage">
-
       <!-- homepage的模块title部分 -->
       <div id="homepage-title">
         <span>小日春和-随笔</span>
@@ -33,7 +32,7 @@
 
 <script>
 //使用懒加载模式导入组件：当路由被访问时才加载对应的代码，这样就更加高效率了
-import homepageRequest from "../../../network/homepageRequest";
+import axios from "../../../network/homepageRequest";
 
 const HomepageItem = () => import("./childComps/HomepageItem");
 const Pagehelper = () => import("components/common/Pagehelper");
@@ -55,20 +54,25 @@ export default {
   },
   methods: {},
   created() {
-    let token = window.localStorage.getItem("token")
-    // 组件创建的时候去请求数据，保存在data中
-    homepageRequest({
-      url: "/article/detail/all",
-      method: "post",
-      // 避免请求体为空，导致后台无法获取到requestBody,从而无法修改其内容将userId添加进去
-      data:{
-        'aaa':'bbb'
-      }
-    }).then((res) => {
-      // console.log(res);
-      this.allPosts = res;
-      this.totalActicleCount = res.length;
-    });
+    axios
+      .get({
+        url:"article/ping",
+      })
+      .then((res) => console.log(res));
+    // let token = window.localStorage.getItem("token")
+    // // 组件创建的时候去请求数据，保存在data中
+    // homepageRequest({
+    //   url: "/article/detail/all",
+    //   method: "post",
+    //   // 避免请求体为空，导致后台无法获取到requestBody,从而无法修改其内容将userId添加进去
+    //   data:{
+    //     'aaa':'bbb'
+    //   }
+    // }).then((res) => {
+    //   // console.log(res);
+    //   this.allPosts = res;
+    //   this.totalActicleCount = res.length;
+    // });
   },
   mounted() {
     // setTimeout(() => {
