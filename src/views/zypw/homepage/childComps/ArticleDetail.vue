@@ -48,12 +48,23 @@
 
         <!-- 发表评论部分 -->
         <div class="releaseCommentArea">
-          <vue-editor v-model="comment"></vue-editor>
+          <!-- @TODO bug:can't get the focus when enter the page. -->
+          <!-- <vue-editor ref="commentEditor" v-model="comment"></vue-editor> -->
+          <Editor v-model="comment"></Editor>
           <div class="commentInfoClick">
-            <Button type="primary" class="commentHandle">爷,说两句</Button>
-            <Button type="dashed" class="commentHandle">缄默不言</Button>
+            <Button
+              type="primary"
+              class="commentHandle"
+              @click="releaseParentComment"
+              >爷,说两句</Button
+            >
+            <Button
+              type="dashed"
+              class="commentHandle"
+              @click="cancelTheRelease"
+              >缄默不言</Button
+            >
           </div>
-          <div>{{ comment }}</div>
         </div>
       </div>
     </Scroll>
@@ -61,17 +72,23 @@
 </template>
 
 <script>
-import { VueEditor, Quill } from "vue2-editor";
+// import { VueEditor } from "vue2-editor";
+// import VueQuillEditor from "vue-quill-editor";
+// import "quill/dist/quill.core.css";
+// import "quill/dist/quill.snow.css";
+// import "quill/dist/quill.bubble.css";
 import homepageRequest from "../../../../network/homepageRequest";
+import moment from "moment";
 
 import Back from "../../../../components/common/Back";
 import Scroll from "../../../../components/common/Scroll";
 import Comment from "../../../../components/content/Comment";
+import Editor from "@tinymce/tinymce-vue";
 
 export default {
   name: "ArticleDetail",
   components: {
-    VueEditor,
+    Editor,
     Scroll,
     Back,
     Comment,
@@ -82,12 +99,97 @@ export default {
       historyComments: [],
       comment: "",
       article: {
+        id: 0,
         title: "",
         readTimes: 0,
         collectTimes: 0,
         content: "",
       },
+      init: {
+        language_url: "${this.baseUrl}/tinymce/langs/zh_CN.js", // 语言包的路径
+        language: "zh_CN", //语言
+        height: 300, //编辑器高度
+        branding: false, //是否禁用“Powered by TinyMCE”
+        menubar: true, //顶部菜单栏显示,
+        toolbar:
+          "undo redo | formatselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | code codesample link help",
+        plugins: [
+          "advlist autolink lists link image charmap print preview anchor",
+          "searchreplace visualblocks code fullscreen",
+          "insertdatetime media table paste code help wordcount",
+          "codesample",
+        ],
+      },
+      // get the api-key from here: https://www.tiny.cloud/my-account/dashboard/
+      apiKey: "pdydaeaw072fplacdenbcb8lepf9j3gjob8m37s4sj7omj30",
     };
+  },
+  methods: {
+    // release the parent comment
+    releaseParentComment() {
+      const commentTime = moment().format("YYYY-MM-DD hh:mm:ss");
+      // encapsulate the param
+      let newAddedComment = {
+        opusId: this.article.id,
+        parentId: null,
+        content: this.comment,
+        imgLinks: null,
+        // @todo:get the user info from vuex
+        commentOwner: 1,
+        anonymousFlag: 0,
+        favoriteCount: 0,
+        replyCount: 0,
+        commentTime: commentTime,
+        modifyTime: commentTime,
+      };
+      this.historyComments.unshift({
+        // @todo fill the comment id after the request
+        id: null,
+        // @todo get the comment user info from vuex
+        userAvatar:
+          "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
+        username: "妞妞宝宝",
+        commentContent: this.comment,
+        commentTime: commentTime,
+        commentFavoriteCount: 0,
+        commentReplyCount: 0,
+        isCurrentUserFavorite: 1,
+      });
+      homepageRequest({
+        url: "comment/add",
+        method: "POST",
+        headers: {
+          "content-type": "application/json; charset=UTF-8",
+        },
+        data: newAddedComment,
+      }).then((res) => {
+        if (res.data.msg == "success") {
+          this.resetCommentContent();
+          alert("添加评论成功!");
+          this.$refs.articleDetailScroll.refresh();
+        } else {
+          alert("服务器休息了!请稍后再试...");
+        }
+      });
+    },
+    cancelTheRelease() {
+      this.resetCommentContent();
+    },
+    // get the historic comments data
+    getLatestComments() {
+      homepageRequest({
+        url: "/article/comments/" + this.aId,
+        method: "post",
+        data: {
+          aaa: "abd",
+        },
+      }).then((res) => {
+        this.historyComments = res.data;
+      });
+    },
+    resetCommentContent() {
+      this.comment ="";
+    },
   },
   created() {
     this.aId = this.$route.params.id;
@@ -100,19 +202,11 @@ export default {
         aaa: "abc",
       },
     }).then((res) => {
-      this.article = res;
+      this.article = res.data;
     });
 
-    // 获取历史评论信息数据
-    homepageRequest({
-      url: "/article/comments/" + this.aId,
-      method: "post",
-      data: {
-        aaa: "abd",
-      },
-    }).then((res) => {
-      this.historyComments = res;
-    });
+    // get the historic comments data
+    this.getLatestComments();
   },
   updated() {
     this.$refs.articleDetailScroll.refresh();

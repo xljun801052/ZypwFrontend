@@ -43,12 +43,12 @@
       },
       username: {
         type: String,
-        default: "夏李逸笙",
+        default: "夏李逸笙-parentComment",
       },
       commentContent: {
         type: String,
         default:
-          "<span>test!测试测试~test!测试测试test!测试测试test!test!测测试测t!测试测试</span>",
+          "",
       },
       // 注意：这里的commentTime最好改成Date!后续优化
       commentTime: {
@@ -101,6 +101,7 @@
     methods:{
       // 显示子评论详情
       showSubComment(){
+        // @TODO:这里要优化一下！哪能这么传参数...
         this.$router.push({
           path:"/subComments",
           query:{

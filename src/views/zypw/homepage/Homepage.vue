@@ -32,7 +32,7 @@
 
 <script>
 //使用懒加载模式导入组件：当路由被访问时才加载对应的代码，这样就更加高效率了
-import axios from "../../../network/homepageRequest";
+import homepageAxiosInstance from "../../../network/homepageRequest";
 
 const HomepageItem = () => import("./childComps/HomepageItem");
 const Pagehelper = () => import("components/common/Pagehelper");
@@ -49,16 +49,16 @@ export default {
     return {
       allPosts: [], // 帖子
       totalActicleCount: 0, // 帖子总数量
-      pageSize: 3, // 分页后每页大小，默认为5篇一页
+      pageSize: 2, // 分页后每页大小，默认为5篇一页
     };
   },
   methods: {},
   created() {
-    axios
-      .get({
-        url:"article/ping",
-      })
-      .then((res) => console.log(res));
+    homepageAxiosInstance.post("/article/detail/all").then((res) => {
+      this.allPosts = res.data;
+      this.totalActicleCount = this.allPosts.length;
+    });
+
     // let token = window.localStorage.getItem("token")
     // // 组件创建的时候去请求数据，保存在data中
     // homepageRequest({

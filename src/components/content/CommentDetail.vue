@@ -113,17 +113,14 @@ export default {
           aaa: "bbb",
         },
       }).then((res) => {
-        console.log("-----sss--------");
-        console.log(res);
-        this.allSubComments = res;
-        return false;
+        console.log("子评论数据:"+res.data);
+        this.allSubComments = res.data;
       });
     },
   },
   created() {
     // 从路由中获取参数信息
     this.parentComment = this.$route.query;
-    console.log(this.parentComment);
     // 发送请求获取数据,
     // 这个地方有个BUG：如果循环引用会导致请求不停地发送....所以封装了CommentNew
     this.getSubCommentsContent(this.parentComment.id);

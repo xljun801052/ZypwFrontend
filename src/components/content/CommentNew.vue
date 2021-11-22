@@ -34,7 +34,6 @@
     props: {
       id: {
         type: Number,
-        default: 1,
       },
       userAvatar: {
         type: String,
@@ -42,12 +41,11 @@
       },
       username: {
         type: String,
-        default: "夏李逸笙",
       },
       commentContent: {
         type: String,
         default:
-          "<span>test!测试测试~test!测试测试test!测试测试test!test!测测试测t!测试测试</span>",
+          "",
       },
       // 注意：这里的commentTime最好改成Date!后续优化
       commentTime: {
