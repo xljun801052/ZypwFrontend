@@ -30,15 +30,25 @@
           :commentTime="commentItem.commentTime"
           :commentFavoriteCount="commentItem.commentFavoriteCount"
           :isCurrentUserFavorite="commentItem.isCurrentUserFavorite"
+          @replySubComment="prepareForReply"
         />
         <Divider dashed class="seperateLine" />
       </div>
 
       <!-- 发表评论部分 -->
       <div class="releaseCommentArea">
-        <vue-editor v-model="comment"></vue-editor>
+        <Editor
+          v-model="commentContent"
+          :init="init"
+          api-key="pdydaeaw072fplacdenbcb8lepf9j3gjob8m37s4sj7omj30"
+        ></Editor>
         <div class="commentInfoClick">
-          <Button type="primary" class="commentHandle">爷,说两句</Button>
+          <Button
+            type="primary"
+            class="commentHandle"
+            @click="releaseReplyForSubComment"
+            >爷,说两句</Button
+          >
           <Button type="dashed" class="commentHandle">缄默不言</Button>
         </div>
         <div>{{ comment }}</div>
@@ -48,21 +58,21 @@
 </template>
 
 <script>
-import { VueEditor, Quill } from "vue2-editor";
 import homepageRequest from "../../network/homepageRequest";
 import Scroll from "../common/Scroll";
 import CommentNew from "./CommentNew";
+import Editor from "@tinymce/tinymce-vue";
 
 export default {
-  name: "Comment",
+  name: "CommentDetail",
   components: {
     Scroll,
     CommentNew,
-    VueEditor,
-    Quill,
+    Editor,
   },
   data() {
     return {
+      renderComponent: true,
       commentReleaseTime: "",
       // 改变一下评论分割线的样式，但是目前没起作用!后面优化一下~
       // seperateLineOrientation: 1,
@@ -76,6 +86,46 @@ export default {
         commentTime: null,
         commentFavoriteCount: null,
         commentReplyCount: null,
+      },
+      currentReplySubCommentInfo: {
+        replySubCommentId: this.parentComment.id,
+        replySubCommentUser: this.parentComment.username,
+        replySubCommentContent: this.parentComment.commentContent,
+      },
+      commentContent: "",
+      init: {
+        height: 500,
+        menubar: false,
+        plugins: [
+          "advlist autolink lists link image charmap print preview anchor",
+          "searchreplace visualblocks code fullscreen",
+          "insertdatetime media table paste code help wordcount",
+        ],
+        toolbar:
+          "undo redo | formatselect | bold italic backcolor | \
+           alignleft aligncenter alignright alignjustify | \
+           bullist numlist outdent indent | removeformat | help",
+        setup: function (editor) {
+          editor.on("mouseover", function () {
+            // console.log(data.content, data.mode, data.source);
+            console.log("ready to get currentReplySubCommentInfo");
+            console.log(this.currentReplySubCommentInfo.replySubCommentId);
+            console.log(this.currentReplySubCommentInfo.replySubCommentUser);
+            console.log(this.currentReplySubCommentInfo.replySubCommentContent);
+            // Apply custom filtering by mutating data.content
+            // const content = data.content;
+            // const newContent = yourCustomFilter(content);
+            // data.content = newContent;
+          });
+          editor.on("focus", function () {
+            // console.log(data.content, data.mode, data.source);
+            console.log("focusing....");
+            // Apply custom filtering by mutating data.content
+            // const content = data.content;
+            // const newContent = yourCustomFilter(content);
+            // data.content = newContent;
+          });
+        },
       },
     };
   },
@@ -101,20 +151,84 @@ export default {
     },
   },
   methods: {
-    reply(id) {
-      console.log("進行回復...");
+    // prepare for the subComment reply
+    prepareForReply(subCommentInfo) {
+      console.log(
+        "ready to reply for this comment:{" +
+          subCommentInfo.id +
+          "---" +
+          subCommentInfo.username +
+          "---" +
+          subCommentInfo.commentContent +
+          "}..."
+      );
+      this.currentReplySubCommentInfo.replySubCommentId = subCommentInfo.id;
+      this.currentReplySubCommentInfo.replySubCommentUser =
+        subCommentInfo.username;
+      this.currentReplySubCommentInfo.replySubCommentContent =
+        subCommentInfo.commentContent;
     },
+    // get the subCommentContent info
     getSubCommentsContent(pid) {
       homepageRequest({
-        url: "/article/subComments",
+        url: "/comment/subComments",
         method: "post",
         data: {
           parentId: pid,
           aaa: "bbb",
         },
       }).then((res) => {
-        console.log("子评论数据:"+res.data);
+        console.log("子评论数据:" + res.data);
+        // @todo 这里有个问题:如果在赋值之前打印allSubComments，会显示undefined，而不是空数组？？？？
         this.allSubComments = res.data;
+        this.$forceUpdate();
+      });
+    },
+    // release the reply for subComment
+    releaseReplyForSubComment() {
+      const commentTime = moment().format("YYYY-MM-DD hh:mm:ss");
+      // encapsulate the param
+      let newAddedComment = {
+        // @todo get the articel ID info from parent component
+        opusId: null,
+        parentId: this.currentReplySubCommentInfo.replySubCommentId,
+        content: this.commentContent,
+        imgLinks: null,
+        // @todo:get the user info from vuex
+        commentOwner: 1,
+        anonymousFlag: 0,
+        favoriteCount: 0,
+        replyCount: 0,
+        commentTime: commentTime,
+        modifyTime: commentTime,
+      };
+      this.allSubComments.unshift({
+        // @todo fill the comment id after the request
+        id: null,
+        // @todo get the comment user info from vuex
+        userAvatar:
+          "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
+        username: "妞妞宝宝sub",
+        commentContent: this.commentContent,
+        commentTime: commentTime,
+        commentFavoriteCount: 0,
+        commentReplyCount: 0,
+        isCurrentUserFavorite: 1,
+      });
+      homepageRequest({
+        url: "comment/add",
+        method: "POST",
+        headers: {
+          "content-type": "application/json; charset=UTF-8",
+        },
+        data: newAddedComment,
+      }).then((res) => {
+        if (res.data.msg == "success") {
+          this.commentContent = "";
+          alert("添加评论成功!");
+        } else {
+          alert("服务器休息了!请稍后再试...");
+        }
       });
     },
   },

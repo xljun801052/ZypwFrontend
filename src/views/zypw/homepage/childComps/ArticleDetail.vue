@@ -42,6 +42,7 @@
               :commentFavoriteCount="commentItem.commentFavoriteCount"
               :commentReplyCount="commentItem.commentReplyCount"
               :isCurrentUserFavorite="commentItem.isCurrentUserFavorite"
+              @commentDelete="commentDeleted"
             />
           </div>
         </div>
@@ -50,7 +51,7 @@
         <div class="releaseCommentArea">
           <!-- @TODO bug:can't get the focus when enter the page. -->
           <!-- <vue-editor ref="commentEditor" v-model="comment"></vue-editor> -->
-          <Editor v-model="comment"></Editor>
+          <Editor v-model="comment" :init="init"></Editor>
           <div class="commentInfoClick">
             <Button
               type="primary"
@@ -190,6 +191,15 @@ export default {
     resetCommentContent() {
       this.comment ="";
     },
+    commentDeleted(cid){
+      // for (let i = 0; i < this.historyComments.length; i++) {
+      //       if (cid== this.$parent.$parent.historyComments[i]) {
+      //         console.log("即将被删除的comment:"+this.$parent.$parent.historyComments[i].commentContent)
+      //         this.$parent.$parent.historyComments.splice(i,1);
+      //       }
+      //     }
+      // this.historyComments.
+    }
   },
   created() {
     this.aId = this.$route.params.id;
@@ -259,9 +269,6 @@ export default {
   margin-right: 5px;
 }
 
-.historyCommentArea {
-  /* background:rgba(100,50,50,0.4);   */
-}
 
 .releaseCommentArea {
   display: flex;

@@ -30,7 +30,7 @@
   import homepageRequest from "../../network/homepageRequest";
 
   export default {
-    name: "Comment",
+    name: "CommentNew",
     props: {
       id: {
         type: Number,
@@ -98,7 +98,11 @@
     methods:{
       // 对子评论进行恢复
       replySubComment(){
-        alert("进行回复...")
+        this.$emit("replySubComment",{
+          id:this.id,
+          username:this.username,
+          commentContent:this.commentContent
+        })
       }
       
     },
