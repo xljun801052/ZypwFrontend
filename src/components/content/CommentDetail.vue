@@ -24,11 +24,12 @@
         <CommentNew
           class="subComment"
           :id="commentItem.id"
-          :userAvatar="commentItem.userAvatar"
-          :username="commentItem.username"
-          :commentContent="commentItem.commentContent"
+          :parentId="commentItem.parentId"
+          :userAvatar="commentItem.avatar"
+          :username="commentItem.userName"
+          :commentContent="commentItem.content"
           :commentTime="commentItem.commentTime"
-          :commentFavoriteCount="commentItem.commentFavoriteCount"
+          :commentFavoriteCount="commentItem.favoriteCount"
           :isCurrentUserFavorite="commentItem.isCurrentUserFavorite"
           @replySubComment="prepareForReply"
         />
@@ -41,7 +42,8 @@
           v-model="commentContent"
           :init="init"
           api-key="pdydaeaw072fplacdenbcb8lepf9j3gjob8m37s4sj7omj30"
-        ></Editor>
+        >
+        </Editor>
         <div class="commentInfoClick">
           <Button
             type="primary"
@@ -51,7 +53,6 @@
           >
           <Button type="dashed" class="commentHandle">缄默不言</Button>
         </div>
-        <div>{{ comment }}</div>
       </div>
     </Scroll>
   </div>
@@ -62,6 +63,7 @@ import homepageRequest from "../../network/homepageRequest";
 import Scroll from "../common/Scroll";
 import CommentNew from "./CommentNew";
 import Editor from "@tinymce/tinymce-vue";
+import moment from "moment";
 
 export default {
   name: "CommentDetail",
@@ -79,22 +81,22 @@ export default {
       // seperateLineSize: "small",
       allSubComments: [],
       parentComment: {
-        id: null,
-        userAvatar: null,
-        username: null,
-        commentContent: null,
-        commentTime: null,
-        commentFavoriteCount: null,
-        commentReplyCount: null,
+        id: 0,
+        userAvatar: "",
+        username: "",
+        commentContent: "",
+        commentTime: "",
+        commentFavoriteCount: 0,
+        commentReplyCount: 0,
       },
       currentReplySubCommentInfo: {
-        replySubCommentId: this.parentComment.id,
-        replySubCommentUser: this.parentComment.username,
-        replySubCommentContent: this.parentComment.commentContent,
+        replySubCommentId: 0,
+        replySubCommentUser: "",
+        replySubCommentContent: "",
       },
       commentContent: "",
       init: {
-        height: 500,
+        height: 350,
         menubar: false,
         plugins: [
           "advlist autolink lists link image charmap print preview anchor",
@@ -106,25 +108,18 @@ export default {
            alignleft aligncenter alignright alignjustify | \
            bullist numlist outdent indent | removeformat | help",
         setup: function (editor) {
-          editor.on("mouseover", function () {
-            // console.log(data.content, data.mode, data.source);
-            console.log("ready to get currentReplySubCommentInfo");
-            console.log(this.currentReplySubCommentInfo.replySubCommentId);
-            console.log(this.currentReplySubCommentInfo.replySubCommentUser);
-            console.log(this.currentReplySubCommentInfo.replySubCommentContent);
-            // Apply custom filtering by mutating data.content
-            // const content = data.content;
-            // const newContent = yourCustomFilter(content);
-            // data.content = newContent;
-          });
-          editor.on("focus", function () {
-            // console.log(data.content, data.mode, data.source);
-            console.log("focusing....");
-            // Apply custom filtering by mutating data.content
-            // const content = data.content;
-            // const newContent = yourCustomFilter(content);
-            // data.content = newContent;
-          });
+          // editor.on("focus", function (data) {
+          // console.log(data.content, data.mode, data.source);
+          // console.log("focusing....");
+          // console.log(data);
+          // alert(window.parentComment.commentContent);
+          // this.commentContent = "rininainai";
+          // this.commentContent = '@'+this.currentReplySubCommentInfo.replySubCommentUser+':'+this.currentReplySubCommentInfo.replySubCommentContent
+          // Apply custom filtering by mutating data.content
+          // const content = data.content;
+          // const newContent = yourCustomFilter(content);
+          // data.content = newContent;
+          // });
         },
       },
     };
@@ -162,25 +157,42 @@ export default {
           subCommentInfo.commentContent +
           "}..."
       );
+      this.commentContent = "";
       this.currentReplySubCommentInfo.replySubCommentId = subCommentInfo.id;
       this.currentReplySubCommentInfo.replySubCommentUser =
         subCommentInfo.username;
       this.currentReplySubCommentInfo.replySubCommentContent =
         subCommentInfo.commentContent;
+      // @todo 跳转到评论框并使其自动获取焦点，且光标位置需要定位在回复内容之后的下一行.
+      // @todo 不能将textarea放在新加的评论上面，要不后面就识别不出来了。。。换了其他标签也没用
+      // @todo 内部原评论需要将HTML标签移除
+      // @todo 原评论需要加上跳转链接
+      this.commentContent =
+        "<p>" +
+        this.commentContent +
+        "</p><textarea readonly style='background-color:lightgray;border-radius:20px;color:white; height:60px; width:440px; overflow:hidden;padding-left:20px;padding-top:10px;'>回复@" +
+        this.currentReplySubCommentInfo.replySubCommentUser +
+        ":\n" +
+        this.currentReplySubCommentInfo.replySubCommentContent +
+        "</textarea>";
     },
     // get the subCommentContent info
     getSubCommentsContent(pid) {
       homepageRequest({
-        url: "/comment/subComments",
+        url: "/comment/allLayerSubComments",
         method: "post",
         data: {
-          parentId: pid,
-          aaa: "bbb",
+          scid: Number.parseInt(pid),
         },
       }).then((res) => {
-        console.log("子评论数据:" + res.data);
         // @todo 这里有个问题:如果在赋值之前打印allSubComments，会显示undefined，而不是空数组？？？？
-        this.allSubComments = res.data;
+        this.allSubComments = JSON.parse(res.data.data);
+        // for (let i = 0; i < this.allSubComments.length; i++) {
+        //   console.log(typeof this.allSubComments[i].commentTime)
+        //   console.log(typeof this.allSubComments[i].favoriteCount)
+        //   this.allSubComments[i].commentTime = Number.parseInt(this.allSubComments[i].commentTime);
+        //   this.allSubComments[i].favoriteCount = Number.parseInt(this.allSubComments[i].favoriteCount);
+        // }
         this.$forceUpdate();
       });
     },
@@ -202,19 +214,6 @@ export default {
         commentTime: commentTime,
         modifyTime: commentTime,
       };
-      this.allSubComments.unshift({
-        // @todo fill the comment id after the request
-        id: null,
-        // @todo get the comment user info from vuex
-        userAvatar:
-          "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
-        username: "妞妞宝宝sub",
-        commentContent: this.commentContent,
-        commentTime: commentTime,
-        commentFavoriteCount: 0,
-        commentReplyCount: 0,
-        isCurrentUserFavorite: 1,
-      });
       homepageRequest({
         url: "comment/add",
         method: "POST",
@@ -224,6 +223,19 @@ export default {
         data: newAddedComment,
       }).then((res) => {
         if (res.data.msg == "success") {
+          this.allSubComments.unshift({
+            // @todo fill the comment id after the request
+            id: res.data.data.commentId,
+            // @todo get the comment user info from vuex
+            userAvatar:
+              "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
+            username: "妞妞宝宝sub",
+            commentContent: this.commentContent,
+            commentTime: commentTime,
+            commentFavoriteCount: 0,
+            commentReplyCount: 0,
+            isCurrentUserFavorite: 1,
+          });
           this.commentContent = "";
           alert("添加评论成功!");
         } else {
@@ -238,6 +250,11 @@ export default {
     // 发送请求获取数据,
     // 这个地方有个BUG：如果循环引用会导致请求不停地发送....所以封装了CommentNew
     this.getSubCommentsContent(this.parentComment.id);
+    this.currentReplySubCommentInfo.replySubCommentId = this.parentComment.id;
+    this.currentReplySubCommentInfo.replySubCommentUser =
+      this.parentComment.username;
+    this.currentReplySubCommentInfo.replySubCommentContent =
+      this.parentComment.commentContent;
   },
   updated() {
     this.$refs.commentDetailRef.refresh();
@@ -335,5 +352,11 @@ export default {
 .commentHandle {
   font-size: 15px;
   font-family: 楷体;
+}
+
+textarea {
+  color: red;
+  height: 80px;
+  width: 100px;
 }
 </style>

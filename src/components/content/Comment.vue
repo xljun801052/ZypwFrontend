@@ -123,7 +123,7 @@ export default {
   methods: {
     // 显示子评论详情
     showSubComment() {
-      // @TODO:这里要优化一下！哪能这么传参数...
+      // @TODO:这里要优化一下！哪能这么传参数在url中...
       this.$router.push({
         path: "/subComments",
         query: {
@@ -131,8 +131,8 @@ export default {
           userAvatar: this.userAvatar,
           username: this.username,
           commentContent: this.commentContent,
-          commentTime: this.commentTime,
-          commentFavoriteCount: this.commentFavoriteCount,
+          commentTime: Number.parseInt(this.commentTime),
+          commentFavoriteCount: Number.parseInt(this.commentFavoriteCount),
           commentReplyCount: this.commentReplyCount,
         },
       });
@@ -160,22 +160,29 @@ export default {
     },
     deleteComment() {
       homepageRequest({
-        url:"/comment/delete/"+this.id,
-        method:"POST"
-      }).then(res=>{
-        if(res.data.msg=="success"){
-          this.$emit("commentDelete",this.id)
-          for (let i = 0; i < this.$parent.$parent.historyComments.length; i++) {
+        url: "/comment/delete/" + this.id,
+        method: "POST",
+      }).then((res) => {
+        if (res.data.msg == "success") {
+          this.$emit("commentDelete", this.id);
+          for (
+            let i = 0;
+            i < this.$parent.$parent.historyComments.length;
+            i++
+          ) {
             if (this.id == this.$parent.$parent.historyComments[i].id) {
-              console.log("即将被删除的comment:"+this.$parent.$parent.historyComments[i].commentContent)
-              this.$parent.$parent.historyComments.splice(i,1);
+              console.log(
+                "即将被删除的comment:" +
+                  this.$parent.$parent.historyComments[i].commentContent
+              );
+              this.$parent.$parent.historyComments.splice(i, 1);
             }
           }
-          alert("delete comment successfully!")
-        }else{
-          alert("服务器开小差了...请稍后重试")
+          alert("delete comment successfully!");
+        } else {
+          alert("服务器开小差了...请稍后重试");
         }
-      })
+      });
     },
   },
 };

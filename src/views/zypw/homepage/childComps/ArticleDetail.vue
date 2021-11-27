@@ -143,19 +143,6 @@ export default {
         commentTime: commentTime,
         modifyTime: commentTime,
       };
-      this.historyComments.unshift({
-        // @todo fill the comment id after the request
-        id: null,
-        // @todo get the comment user info from vuex
-        userAvatar:
-          "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
-        username: "妞妞宝宝",
-        commentContent: this.comment,
-        commentTime: commentTime,
-        commentFavoriteCount: 0,
-        commentReplyCount: 0,
-        isCurrentUserFavorite: 1,
-      });
       homepageRequest({
         url: "comment/add",
         method: "POST",
@@ -165,6 +152,19 @@ export default {
         data: newAddedComment,
       }).then((res) => {
         if (res.data.msg == "success") {
+          this.historyComments.unshift({
+            // @todo fill the comment id after the request
+            id: res.data.data.commentId,
+            // @todo get the comment user info from vuex
+            userAvatar:
+              "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
+            username: "妞妞宝宝",
+            commentContent: this.comment,
+            commentTime: commentTime,
+            commentFavoriteCount: 0,
+            commentReplyCount: 0,
+            isCurrentUserFavorite: 1,
+          });
           this.resetCommentContent();
           alert("添加评论成功!");
           this.$refs.articleDetailScroll.refresh();
@@ -189,9 +189,9 @@ export default {
       });
     },
     resetCommentContent() {
-      this.comment ="";
+      this.comment = "";
     },
-    commentDeleted(cid){
+    commentDeleted(cid) {
       // for (let i = 0; i < this.historyComments.length; i++) {
       //       if (cid== this.$parent.$parent.historyComments[i]) {
       //         console.log("即将被删除的comment:"+this.$parent.$parent.historyComments[i].commentContent)
@@ -199,7 +199,7 @@ export default {
       //       }
       //     }
       // this.historyComments.
-    }
+    },
   },
   created() {
     this.aId = this.$route.params.id;
@@ -268,7 +268,6 @@ export default {
   width: 20px;
   margin-right: 5px;
 }
-
 
 .releaseCommentArea {
   display: flex;

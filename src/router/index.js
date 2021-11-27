@@ -69,7 +69,11 @@ const routes = [
   {
     path: '/subComments',
     name: 'SubComments',
-    component: CommentDetail
+    component: CommentDetail,
+    // props:{
+    //   header:true,
+    //   content:true,
+    // }
   },
 
 
