@@ -1,0 +1,23 @@
+001-homepage首页分页请求数据:这里请求应该是当前数据页数据，如果数据多了会产生影响
+    getCurrentPageArticles(pageSize, currentPage) {
+        console.log("current pageSize:"+pageSize+" current page:"+currentPage)
+        homepageAxiosInstance({
+            url: "/article/detail/more",
+            method: "POST",
+            data: {
+            pageSize,
+            currentPage,
+            },
+        })
+            .then((res) => {
+            let data = JSON.parse(res.data.data)
+            this.currentPageArticles = data.articles;
+            this.totalActicleCount = data.total;
+            })
+            .catch((error) => {
+            alert("The server is busy, please try again later.");
+            console.log("Error occurs: " + error);
+            });
+        },  
+
+002-真实化article内容，查看页面布局以及真实效果展示。做调整。

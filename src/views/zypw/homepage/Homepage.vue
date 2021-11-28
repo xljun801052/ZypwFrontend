@@ -1,26 +1,23 @@
 <template>
   <div>
     <div id="homepage">
-      <!-- homepage的模块title部分 -->
       <div id="homepage-title">
         <span>小日春和-随笔</span>
       </div>
 
-      <!--设置局部滚动-->
       <Scroll ref="homepageScroll">
-        <!-- homepage的内容部分 -->
         <div id="homepage-content">
           <HomepageItem
             class="homepage-item"
-            v-for="(item, index) in allPosts"
+            v-for="(item, index) in currentPageArticles"
             :key="index"
             :item="item"
           >
           </HomepageItem>
         </div>
 
-        <!--分页部分-->
         <Pagehelper
+          @pageChanged="loadCorrespondingPageData"
           class="pagehelper"
           :total="totalActicleCount"
           :pageSize="pageSize"
@@ -47,18 +44,41 @@ export default {
   },
   data() {
     return {
-      allPosts: [], // 帖子
-      totalActicleCount: 0, // 帖子总数量
-      pageSize: 2, // 分页后每页大小，默认为5篇一页
+      currentPageArticles: [],
+      totalActicleCount: 0,
+      pageSize: 3, // default 3 articles per page.
+      currentPage: 1,
     };
   },
-  methods: {},
+  methods: {
+    // get corresponding page data
+    getCurrentPageArticles(pageSize, currentPage) {
+      console.log("current pageSize:"+pageSize+" current page:"+currentPage)
+      homepageAxiosInstance({
+        url: "/article/detail/more",
+        method: "POST",
+        data: {
+          pageSize,
+          currentPage,
+        },
+      })
+        .then((res) => {
+          let data = JSON.parse(res.data.data)
+          this.currentPageArticles = data.articles;
+          this.totalActicleCount = data.total;
+        })
+        .catch((error) => {
+          alert("The server is busy, please try again later.");
+          console.log("Error occurs: " + error);
+        });
+    },
+    loadCorrespondingPageData(page) {
+      this.currentPage = page;
+      this.getCurrentPageArticles(this.pageSize, this.currentPage);
+    },
+  },
   created() {
-    homepageAxiosInstance.post("/article/detail/all").then((res) => {
-      this.allPosts = res.data;
-      this.totalActicleCount = this.allPosts.length;
-    });
-
+    // initialize the first page data
     // let token = window.localStorage.getItem("token")
     // // 组件创建的时候去请求数据，保存在data中
     // homepageRequest({
@@ -75,6 +95,7 @@ export default {
     // });
   },
   mounted() {
+    this.getCurrentPageArticles(this.pageSize, 1);
     // setTimeout(() => {
     //   console.log(this.$refs.homepageScroll.scrollHeight);
     //   this.$refs.homepageScroll.refresh()
