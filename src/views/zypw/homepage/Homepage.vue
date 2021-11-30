@@ -121,7 +121,7 @@ export default {
 
 span {
   font-family: 楷体;
-  font-size: 30px;
+  font-size: 40px;
   color: rgb(1, 253, 203);
   /*text-shadow: 0 0 20px #fdec84,*/
   /*10px -10px 30px #ffae35,*/
@@ -149,7 +149,7 @@ span {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 25px;
   margin-bottom: 40px;
 }
 

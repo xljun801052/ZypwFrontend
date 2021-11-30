@@ -6,7 +6,6 @@
         <div>
           <Back class="backItem" />
           <h2 class="article_title">{{ article.title }}</h2>
-          <Divider />
           <div class="article_readAndCollectInfo">
             <!-- <span>发布时间: {{ article.pubTime }}</span> -->
             <span class="article_readTimes"
@@ -16,6 +15,7 @@
               >收藏数量: {{ article.collectTimes }}</span
             >
           </div>
+          <Divider />
           <div class="article_content">
             <p v-html="article.content"></p>
           </div>
@@ -239,6 +239,7 @@ export default {
   padding-top: 10px;
   text-align: center;
   font-size: 30px;
+  font-family: 楷体;
 }
 
 .article_readAndCollectInfo {

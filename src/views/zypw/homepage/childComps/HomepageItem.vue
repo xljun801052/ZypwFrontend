@@ -7,7 +7,7 @@
 
     <!--帖子的分类、标签、发布时间、阅读数等信息-->
     <div class="abstract">
-      分类:生活感悟||标签：{{ item.tag }}||发布于:{{ item.time }}||阅读数:{{
+      分类:{{item.category}}||标签：{{ item.tags }}||发布于:{{ formatReleaseTime(item.releaseTime) }}||阅读数:{{
         item.readTimes
       }}
     </div>
@@ -27,7 +27,7 @@
 </template>
 
 <script>
-import homepageAxiosInstance from "../../../../network/homepageRequest";
+import dayjs from "dayjs";
 export default {
   name: "HomepageItem",
   props: {
@@ -43,6 +43,9 @@ export default {
     showContentDetails(arti_id) {
       this.$router.push("/article_detail/" + arti_id);
     },
+    formatReleaseTime(date){
+      return dayjs(date).format('YYYY-MM-DD');
+    }
   },
 };
 </script>
@@ -51,7 +54,7 @@ export default {
 .article_title {
   font-family: 楷体;
   font-weight: bold;
-  font-size: 20px;
+  font-size: 30px;
   color: white;
   background: rgba(0, 255, 153, 0.5);
   border-radius: 15px;
@@ -60,19 +63,19 @@ export default {
 .abstract {
   font-family: 楷体;
   font-weight: bold;
-  font-size: 18px;
+  font-size: 25px;
   color: #2dfdaa;
 }
 
 /*文本超过限制时用...进行显示代替*/
 .contentAbstract {
   font-family: 楷体;
-  font-size: 10px;
+  font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  height: 50px;
-  width: 400px;
+  height: 100px;
+  width: 1000px;
   color: #2dfdaa;
 }
 
