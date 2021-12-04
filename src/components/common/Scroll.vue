@@ -50,6 +50,10 @@
         // 获取Y轴位置
         return this.scroll ? this.scroll.y : 0;
       },
+      scrollToElement(ele,x,y){
+        // scrollToElement(el, time, offsetX, offsetY, easing)
+        this.scroll.scrollToElement(ele,0,0)
+      }
     },
     mounted() {
       // 注意！这里建立BScroll对象不要用document.querySelector(...)这样类似的API，因为获取的不一定是本组件中你想要的那个元素。用Vue的ref属性来指定获取特定元素最好！！！

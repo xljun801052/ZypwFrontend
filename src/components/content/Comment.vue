@@ -150,7 +150,6 @@ export default {
     },
     // change the "Click Zan" status.
     changeFavoriteStatus() {
-      console.log("ready to change favorite status....");
       homepageRequest({
         url: "/favorite/comment-star/act",
         method: "post",
@@ -161,10 +160,12 @@ export default {
         },
       })
         .then((res) => {
-          console.log(JSON.parse(res.data.data));
           if (res.data.data) {
             if (this.isCurrentUserFavorite) {
-              this.commentFavoriteCount = this.commentFavoriteCount - 1;
+              this.commentFavoriteCount =
+                this.commentFavoriteCount - 1 < 0
+                  ? 0
+                  : this.commentFavoriteCount - 1;
             } else {
               this.commentFavoriteCount = this.commentFavoriteCount + 1;
             }
@@ -287,7 +288,7 @@ export default {
   width: 30px;
   height: 30px;
   overflow: hidden;
-  fill:currentColor;
+  fill: currentColor;
   color: rgb(154, 156, 160);
 }
 .specialsvg {

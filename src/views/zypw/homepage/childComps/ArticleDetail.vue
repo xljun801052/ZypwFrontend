@@ -9,11 +9,11 @@
           <div class="article_readAndCollectInfo">
             <!-- <span>发布时间: {{ article.pubTime }}</span> -->
             <span class="article_readTimes"
-              >阅读数: {{ article.readTimes }} </span
-            >
+              >阅读数: {{ article.readTimes }}
+            </span>
             <span class="article_collectTimes"
-              >收藏数量: {{ article.collectTimes }} </span
-            >
+              >收藏数量: {{ article.collectTimes }}
+            </span>
           </div>
           <Divider />
           <div class="article_content">
@@ -41,8 +41,12 @@
               :commentTime="commentItem.commentTime"
               :commentFavoriteCount="commentItem.commentFavoriteCount"
               :commentReplyCount="commentItem.commentReplyCount"
-              :isCurrentUserFavorite="Boolean(commentItem.isCurrentUserFavorite)"
-              :isCurrentUserCommented="Boolean(commentItem.isCurrentUserCommented)"
+              :isCurrentUserFavorite="
+                Boolean(commentItem.isCurrentUserFavorite)
+              "
+              :isCurrentUserCommented="
+                Boolean(commentItem.isCurrentUserCommented)
+              "
             />
           </div>
         </div>
@@ -136,6 +140,7 @@ export default {
         replyCount: 0,
         commentTime: commentTime,
         modifyTime: null,
+        validFlag: 0,
       };
       homepageRequest({
         url: "comment/add",
@@ -154,13 +159,15 @@ export default {
             commentTime: commentTime,
             commentFavoriteCount: 0,
             commentReplyCount: 0,
-            isCurrentUserFavorite: 1,
+            isCurrentUserFavorite: 0,
             isCurrentUserCommented: 1,
           });
           this.resetCommentContent();
           alert("添加评论成功!");
           this.$refs.articleDetailScroll.refresh();
-          // @todo 将scroll滚动到当前发布的评论那里
+          let comment_element = document.querySelectorAll(".comment_item")[0]
+          console.log(comment_element)
+          this.$refs.articleDetailScroll.scrollToElement(comment_element,0,0)
         } else {
           alert("服务器休息了!请稍后再试...");
         }
