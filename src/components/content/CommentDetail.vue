@@ -29,7 +29,7 @@
           :username="commentItem.userName"
           :commentContent="commentItem.content"
           :commentTime="commentItem.commentTime"
-          :commentFavoriteCount="commentItem.favoriteCount"
+          :commentFavoriteCount="Number.parseInt(commentItem.favoriteCount)"
           :isCurrentUserFavorite="commentItem.isCurrentUserFavorite"
           @replySubComment="prepareForReply"
         />
@@ -213,6 +213,7 @@ export default {
         replyCount: 0,
         commentTime: commentTime,
         modifyTime: commentTime,
+        validFlag:0
       };
       homepageRequest({
         url: "comment/add",
@@ -263,6 +264,10 @@ export default {
 </script>
 
 <style scoped>
+.comment_item {
+  background: rgba(192, 243, 134, 0.8);
+  border-radius: 5px;
+}
 .commentUserInfo {
   display: flex;
   font-size: 18px;

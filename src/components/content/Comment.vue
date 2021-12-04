@@ -1,19 +1,27 @@
 <template>
   <div class="comment_item">
-    <!-- 评论者信息 -->
+    <!-- comment owner info -->
     <div class="commentUserInfo">
       <img v-if="userAvatar" :src="userAvatar" alt="" class="avatar" />
       <img v-else src="~assets/imgs/theme/tutu.png" alt="" class="avatar" />
       <div>{{ username }}:</div>
-      <!-- 评论获赞数 -->
+      <!-- favorited count -->
       <div class="commentFavoriteCount">
-        <img
+        <svg
+          :class="{ specialsvg: isCurrentUserFavorite }"
+          class="commonsvg"
+          aria-hidden="true"
+          @click="changeFavoriteStatus"
+        >
+          <use :xlink:href="iconName"></use>
+        </svg>
+        <!-- <img
           src="~assets/imgs/utils/favorite.png"
           alt=""
-          :class="{ favorite: isCurrentUserFavorite === 0 ? true : false }"
-          @click="changeFavoriteStatus(id)"
-        />
-        <div :class="{ favoriteC: isCurrentUserFavorite === 0 ? true : false }">
+          :class="{ favorite: isCurrentUserFavorite }"
+          @click="changeFavoriteStatus"
+        /> -->
+        <div class="countPosition">
           {{ commentFavoriteCount }}
         </div>
       </div>
@@ -82,12 +90,12 @@ export default {
       default: 0,
     },
     isCurrentUserFavorite: {
-      type: Number,
-      default: 0,
+      type: Boolean,
+      default: false,
     },
     isCurrentUserCommented: {
       type: Boolean,
-      default: true,
+      default: false,
     },
   },
   data() {
@@ -119,9 +127,12 @@ export default {
       }
       return this.commentReleaseTime;
     },
+    iconName() {
+      return `#icon-star`;
+    },
   },
   methods: {
-    // 显示子评论详情
+    // show all subComments information
     showSubComment() {
       // @TODO:这里要优化一下！哪能这么传参数在url中...
       this.$router.push({
@@ -137,27 +148,34 @@ export default {
         },
       });
     },
-    changeFavoriteStatus(cid) {
-      // 向后台发送请求更改点赞信息
+    // change the "Click Zan" status.
+    changeFavoriteStatus() {
+      console.log("ready to change favorite status....");
       homepageRequest({
-        url: "/article/changeFavorite",
+        url: "/favorite/comment-star/act",
         method: "post",
         data: {
-          cid: cid,
+          cId: Number.parseInt(this.id),
+          userId: this.$store.state.currentUserId,
+          favorited: !this.isCurrentUserFavorite,
         },
       })
         .then((res) => {
-          // 成功了之后改变点赞状态
-          if (isCurrentUserFavorite == 0) {
-            this.isCurrentUserFavorite = 1;
-          } else {
-            this.isCurrentUserFavorite = 0;
+          console.log(JSON.parse(res.data.data));
+          if (res.data.data) {
+            if (this.isCurrentUserFavorite) {
+              this.commentFavoriteCount = this.commentFavoriteCount - 1;
+            } else {
+              this.commentFavoriteCount = this.commentFavoriteCount + 1;
+            }
+            this.isCurrentUserFavorite = !this.isCurrentUserFavorite;
           }
         })
-        .catch((res) => {
+        .catch((error) => {
           alert("点赞有点小问题");
         });
     },
+    // delete the comment.
     deleteComment() {
       homepageRequest({
         url: "/comment/delete/" + this.id,
@@ -171,10 +189,6 @@ export default {
             i++
           ) {
             if (this.id == this.$parent.$parent.historyComments[i].id) {
-              console.log(
-                "即将被删除的comment:" +
-                  this.$parent.$parent.historyComments[i].commentContent
-              );
               this.$parent.$parent.historyComments.splice(i, 1);
             }
           }
@@ -211,6 +225,7 @@ export default {
   display: flex;
   position: absolute;
   right: 20%;
+  width: 60px;
   align-items: center;
   overflow: hidden;
 }
@@ -264,14 +279,18 @@ export default {
   background: rgba(100, 50, 50, 0.1);
 }
 
-.favorite {
-  position: relative;
-  bottom: -30px;
-  border-right: 20px solid transparent;
-  -webkit-filter: drop-shadow(20px 0);
-  filter: drop-shadow(0px -30px rgb(255, 0, 51));
+.countPosition {
+  margin-left: 10px;
 }
-.favoriteC {
-  margin-left: -20px;
+
+.commonsvg {
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  fill:currentColor;
+  color: rgb(154, 156, 160);
+}
+.specialsvg {
+  color: red;
 }
 </style>

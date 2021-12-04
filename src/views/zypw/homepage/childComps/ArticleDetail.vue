@@ -9,10 +9,10 @@
           <div class="article_readAndCollectInfo">
             <!-- <span>发布时间: {{ article.pubTime }}</span> -->
             <span class="article_readTimes"
-              >阅读数: {{ article.readTimes }}</span
+              >阅读数: {{ article.readTimes }} </span
             >
             <span class="article_collectTimes"
-              >收藏数量: {{ article.collectTimes }}</span
+              >收藏数量: {{ article.collectTimes }} </span
             >
           </div>
           <Divider />
@@ -41,16 +41,14 @@
               :commentTime="commentItem.commentTime"
               :commentFavoriteCount="commentItem.commentFavoriteCount"
               :commentReplyCount="commentItem.commentReplyCount"
-              :isCurrentUserFavorite="commentItem.isCurrentUserFavorite"
-              @commentDelete="commentDeleted"
+              :isCurrentUserFavorite="Boolean(commentItem.isCurrentUserFavorite)"
+              :isCurrentUserCommented="Boolean(commentItem.isCurrentUserCommented)"
             />
           </div>
         </div>
 
         <!-- 发表评论部分 -->
         <div class="releaseCommentArea">
-          <!-- @TODO bug:can't get the focus when enter the page. -->
-          <!-- <vue-editor ref="commentEditor" v-model="comment"></vue-editor> -->
           <Editor v-model="comment" :init="init"></Editor>
           <div class="commentInfoClick">
             <Button
@@ -73,14 +71,8 @@
 </template>
 
 <script>
-// import { VueEditor } from "vue2-editor";
-// import VueQuillEditor from "vue-quill-editor";
-// import "quill/dist/quill.core.css";
-// import "quill/dist/quill.snow.css";
-// import "quill/dist/quill.bubble.css";
 import homepageRequest from "../../../../network/homepageRequest";
-import moment from "moment";
-
+import dayjs from "dayjs";
 import Back from "../../../../components/common/Back";
 import Scroll from "../../../../components/common/Scroll";
 import Comment from "../../../../components/content/Comment";
@@ -96,7 +88,7 @@ export default {
   },
   data() {
     return {
-      aId: "",
+      aId: 0,
       historyComments: [],
       comment: "",
       article: {
@@ -105,6 +97,9 @@ export default {
         readTimes: 0,
         collectTimes: 0,
         content: "",
+        category: "",
+        tags: "",
+        releaseTime: null,
       },
       init: {
         language_url: "${this.baseUrl}/tinymce/langs/zh_CN.js", // 语言包的路径
@@ -128,20 +123,19 @@ export default {
   methods: {
     // release the parent comment
     releaseParentComment() {
-      const commentTime = moment().format("YYYY-MM-DD hh:mm:ss");
+      const commentTime = dayjs().format("YYYY-MM-DD hh:mm:ss");
       // encapsulate the param
       let newAddedComment = {
         opusId: this.article.id,
         parentId: null,
         content: this.comment,
         imgLinks: null,
-        // @todo:get the user info from vuex
-        commentOwner: 1,
+        commentOwner: this.$store.state.currentUserId,
         anonymousFlag: 0,
         favoriteCount: 0,
         replyCount: 0,
         commentTime: commentTime,
-        modifyTime: commentTime,
+        modifyTime: null,
       };
       homepageRequest({
         url: "comment/add",
@@ -153,69 +147,63 @@ export default {
       }).then((res) => {
         if (res.data.msg == "success") {
           this.historyComments.unshift({
-            // @todo fill the comment id after the request
             id: res.data.data.commentId,
-            // @todo get the comment user info from vuex
-            userAvatar:
-              "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
-            username: "妞妞宝宝",
+            userAvatar: this.$store.state.currentUserAvatar,
+            username: this.$store.state.currentUserName,
             commentContent: this.comment,
             commentTime: commentTime,
             commentFavoriteCount: 0,
             commentReplyCount: 0,
             isCurrentUserFavorite: 1,
+            isCurrentUserCommented: 1,
           });
           this.resetCommentContent();
           alert("添加评论成功!");
           this.$refs.articleDetailScroll.refresh();
+          // @todo 将scroll滚动到当前发布的评论那里
         } else {
           alert("服务器休息了!请稍后再试...");
         }
       });
     },
+    // cancel the comment release
     cancelTheRelease() {
       this.resetCommentContent();
     },
-    // get the historic comments data
+    // get the historical comments data
     getLatestComments() {
       homepageRequest({
-        url: "/article/comments/" + this.aId,
-        method: "post",
+        url: "/comment/historical/all",
+        method: "POST",
         data: {
-          aaa: "abd",
+          aId: Number.parseInt(this.aId),
+          userId: this.$store.state.currentUserId,
         },
       }).then((res) => {
-        this.historyComments = res.data;
+        this.historyComments = JSON.parse(res.data.data);
       });
     },
+    // reset the comment content
     resetCommentContent() {
       this.comment = "";
     },
-    commentDeleted(cid) {
-      // for (let i = 0; i < this.historyComments.length; i++) {
-      //       if (cid== this.$parent.$parent.historyComments[i]) {
-      //         console.log("即将被删除的comment:"+this.$parent.$parent.historyComments[i].commentContent)
-      //         this.$parent.$parent.historyComments.splice(i,1);
-      //       }
-      //     }
-      // this.historyComments.
-    },
+    // comment delete action has been moved into the subComponent.
   },
-  created() {
+  mounted() {
+    // initialize the original article data
     this.aId = this.$route.params.id;
-
-    // 获取文章详情数据
     homepageRequest({
-      url: "/article/detail/" + this.aId,
+      url: "/article/detail",
       method: "post",
       data: {
-        aaa: "abc",
+        aId: Number.parseInt(this.aId),
+        userId: this.$store.state.currentUserId,
       },
     }).then((res) => {
-      this.article = res.data;
+      this.article = JSON.parse(res.data.data);
     });
 
-    // get the historic comments data
+    // initialize the historical comments data
     this.getLatestComments();
   },
   updated() {

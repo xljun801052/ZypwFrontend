@@ -12,10 +12,16 @@ import store from "./store";
 import ViewUI from "view-design";
 import "view-design/dist/styles/iview.css";
 
+// 导入svg,获取全部图标，这样其他页面就不需要单独引入svg图标了
+const requireAll = requireContext => requireContext.keys().map(requireContext)    
+const req = require.context('./assets/svgs', false, /.svg$/) 
+requireAll(req)
+
 // Vue.use(ElementUI);
 //此处使用的是基本的组件，没有对iview进行全局的配置，如果需要的话可以在这里修改进行全局配置
 Vue.use(ViewUI);
 Vue.config.productionTip = false;
+// Vue.component() // 注册全局组件使用
 
 new Vue({
   router,
