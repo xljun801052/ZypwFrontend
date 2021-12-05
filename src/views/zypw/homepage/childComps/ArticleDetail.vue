@@ -35,6 +35,7 @@
           <div v-for="(commentItem, index) in historyComments" :key="index">
             <Comment
               :id="commentItem.id"
+              :opusId="commentItem.opusId"
               :userAvatar="commentItem.userAvatar"
               :username="commentItem.username"
               :commentContent="commentItem.commentContent"
@@ -165,8 +166,8 @@ export default {
           this.resetCommentContent();
           alert("添加评论成功!");
           this.$refs.articleDetailScroll.refresh();
-          let comment_element = document.querySelectorAll(".comment_item")[0]
-          this.$refs.articleDetailScroll.scrollToElement(comment_element)
+          let comment_element = document.querySelectorAll(".comment_item")[0];
+          this.$refs.articleDetailScroll.scrollToElement(comment_element);
         } else {
           alert("服务器休息了!请稍后再试...");
         }
@@ -187,6 +188,7 @@ export default {
         },
       }).then((res) => {
         this.historyComments = JSON.parse(res.data.data);
+        this.historyComments.map((i) => (i.opusId = Number.parseInt(this.aId)));
       });
     },
     // reset the comment content

@@ -58,6 +58,9 @@ export default {
     parentId: {
       type: Number,
     },
+    opusId: {
+      type: Number,
+    },
     commentOwner:{
       type:Number,
     },

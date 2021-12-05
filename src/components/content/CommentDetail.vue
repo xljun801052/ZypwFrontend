@@ -6,6 +6,8 @@
         <div class="parentCommentContent">
           <CommentNew
             :id="Number.parseInt(parentComment.id)"
+            :opusId="Number.parseInt(parentComment.opusId)"
+            :parentId="parentComment.parentId"
             :userAvatar="parentComment.userAvatar"
             :username="parentComment.username"
             :commentContent="parentComment.commentContent"
@@ -16,12 +18,13 @@
         </div>
         <Divider solid class="seperateLine" />
 
-        <!--子评论信息-->
+        <!--sub comment info-->
         <div v-for="(commentItem, index) in allSubComments" :key="index">
           <CommentNew
             class="subComment"
             :id="commentItem.id"
             :parentId="commentItem.parentId"
+            :opusId="Number.parseInt(commentItem.opusId)"
             :commentOwner="commentItem.commentOwner"
             :userAvatar="commentItem.avatar"
             :username="commentItem.userName"
@@ -84,6 +87,8 @@ export default {
       allSubComments: [],
       parentComment: {
         id: 0,
+        opusId:null,
+        parentId:null,
         userAvatar: "",
         username: "",
         commentContent: "",
@@ -196,7 +201,6 @@ export default {
           scid: Number.parseInt(pid),
         },
       }).then((res) => {
-        // @todo 这里有个问题:如果在赋值之前打印allSubComments，会显示undefined，而不是空数组？？？？
         this.allSubComments = JSON.parse(res.data.data);
         // for (let i = 0; i < this.allSubComments.length; i++) {
         //   console.log(typeof this.allSubComments[i].commentTime)
@@ -212,8 +216,7 @@ export default {
       const commentTime = moment().format("YYYY-MM-DD hh:mm:ss");
       // encapsulate the param
       let newAddedComment = {
-        // @todo get the articel ID info from parent component
-        opusId: null,
+        opusId: this.parentComment.opusId,
         parentId: this.currentReplySubCommentInfo.replySubCommentId,
         content: this.commentContent,
         imgLinks: null,
@@ -236,7 +239,8 @@ export default {
         if (res.data.msg == "success") {
           this.allSubComments.unshift({
             id: res.data.data.commentId,
-            parentId: null,
+            parentId: this.currentReplySubCommentInfo.replySubCommentId,
+            opusId:this.parentComment.opusId,
             commentOwner: this.$store.state.currentUserId,
             avatar: this.$store.state.currentUserAvatar,
             userName: this.$store.state.currentUserName,

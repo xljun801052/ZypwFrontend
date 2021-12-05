@@ -58,6 +58,10 @@ export default {
       type: Number,
       default: 1,
     },
+    opusId:{
+      type:Number,
+      default:null
+    },
     userAvatar: {
       type: String,
       default: null,
@@ -133,6 +137,8 @@ export default {
         path: "/subComments",
         query: {
           id: this.id,
+          opusId:this.opusId,
+          parentId:null,// top level comment has no parentId,so set null by default
           userAvatar: this.userAvatar,
           username: this.username,
           commentContent: this.commentContent,
