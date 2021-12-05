@@ -7,12 +7,15 @@
       <div>{{ username }}:</div>
       <!-- 评论获赞数 -->
       <div class="commentFavoriteCount">
-        <img
-          src="~assets/imgs/utils/favorite.png"
-          alt=""
-          :class="{ favorite: isCurrentUserFavorite === 0 ? true : false }"
-        />
-        <div :class="{ favoriteC: isCurrentUserFavorite === 0 ? true : false }">
+        <svg
+          :class="{ specialsvg: isCurrentUserFavorite }"
+          class="commonsvg"
+          aria-hidden="true"
+          @click="changeFavoriteStatus"
+        >
+          <use :xlink:href="iconName"></use>
+        </svg>
+        <div :class="countPosition">
           {{ commentFavoriteCount }}
         </div>
       </div>
@@ -33,7 +36,7 @@
 
       <div
         class="commentDelete"
-        v-if="isCurrentUserCommented"
+        v-if="judgeIisCurrentUserCommented"
         @click="deleteComment"
       >
         删除
@@ -54,6 +57,9 @@ export default {
     },
     parentId: {
       type: Number,
+    },
+    commentOwner:{
+      type:Number,
     },
     userAvatar: {
       type: String,
@@ -80,8 +86,8 @@ export default {
       default: 0,
     },
     isCurrentUserFavorite: {
-      type: Number,
-      default: 0,
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -91,17 +97,28 @@ export default {
       // seperateLineOrientation: 1,
       // seperateLineSize: "small",
 
-      isCurrentUserCommented: true,
+      isCurrentUserCommented: false,
     };
   },
   computed: {
     cTimeAfterTransform() {
-      this.commentReleaseTime = moment(this.commentTime).fromNow();
+      this.commentReleaseTime = moment(this.commentTime).locale('zh_cn').fromNow();
       return this.commentReleaseTime;
+    },
+    iconName(){
+      return `#icon-star`;
+    },
+    judgeIisCurrentUserCommented(){
+      if(this.$store.state.currentUserId == this.commentOwner){
+        this.isCurrentUserCommented =true;
+      }else{
+        this.isCurrentUserCommented =false;
+      }
+      return this.isCurrentUserCommented;
     },
   },
   methods: {
-    // 对子评论进行恢复
+    // replay for the special sub comment
     replySubComment() {
       this.$emit("replySubComment", {
         id: this.id,
@@ -109,6 +126,7 @@ export default {
         commentContent: this.commentContent,
       });
     },
+    // delete the comment logically
     deleteComment() {
       homepageRequest({
         url: "/comment/delete/" + this.id,
@@ -129,6 +147,34 @@ export default {
           alert("服务器开小差了...请稍后重试");
         }
       });
+    },
+    // change the star status
+    changeFavoriteStatus() {
+      homepageRequest({
+        url: "/favorite/comment-star/act",
+        method: "post",
+        data: {
+          cId: Number.parseInt(this.id),
+          userId: this.$store.state.currentUserId,
+          favorited: !this.isCurrentUserFavorite,
+        },
+      })
+        .then((res) => {
+          if (res.data.data) {
+            if (this.isCurrentUserFavorite) {
+              this.commentFavoriteCount =
+                this.commentFavoriteCount - 1 < 0
+                  ? 0
+                  : this.commentFavoriteCount - 1;
+            } else {
+              this.commentFavoriteCount = this.commentFavoriteCount + 1;
+            }
+            this.isCurrentUserFavorite = !this.isCurrentUserFavorite;
+          }
+        })
+        .catch((error) => {
+          alert("点赞有点小问题");
+        });
     },
   },
 };
@@ -179,7 +225,7 @@ export default {
   left: 42px;
   top: 10px;
   border: 1px dashed grey;
-  width: 60px;
+  width: 68px;
   border-radius: 20%;
   background: rgba(100, 50, 50, 0.1);
 }
@@ -219,5 +265,21 @@ export default {
   width: 60px;
   border-radius: 20%;
   background: rgba(100, 50, 50, 0.1);
+}
+
+.commonsvg {
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  fill: currentColor;
+  color: rgb(154, 156, 160);
+}
+
+.specialsvg {
+  color: red;
+}
+
+.countPosition {
+  margin-left: 10px;
 }
 </style>

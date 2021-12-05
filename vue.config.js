@@ -21,13 +21,13 @@ module.exports = {
       .rule("md")
       .test(/\.md/)
       .use("vue-loader")
-        .loader("vue-loader")
-        .end()
+      .loader("vue-loader")
+      .end()
       .use("vue-markdown-loader")
-        .loader("vue-markdown-loader/lib/markdown-compiler")
-        .options({
-          raw: true
-        });
+      .loader("vue-markdown-loader/lib/markdown-compiler")
+      .options({
+        raw: true
+      });
 
     // svg-loader configure
     const svgRule = config.module.rule("svg"); // 找到svg-loader
@@ -36,16 +36,14 @@ module.exports = {
     svgRule // 添加svg新的loader处理
       .test(/\.svg$/)
       .use("svg-sprite-loader")
-        .loader("svg-sprite-loader")
-        .options({
-          symbolId: "icon-[name]"
-        });
+      .loader("svg-sprite-loader")
+      .options({
+        symbolId: "icon-[name]"
+      });
 
     // 修改images loader 添加svg处理
     const imagesRule = config.module.rule("images");
     imagesRule.exclude.add(resolve("src/assets/svgs"));
-    config.module
-      .rule("images")
-      .test(/\.(png|jpe?g|gif|svg)(\?.*)?$/);
+    config.module.rule("images").test(/\.(png|jpe?g|gif|svg)(\?.*)?$/);
   }
 };

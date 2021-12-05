@@ -50,7 +50,7 @@
         // 获取Y轴位置
         return this.scroll ? this.scroll.y : 0;
       },
-      scrollToElement(ele,x,y){
+      scrollToElement(ele){
         // scrollToElement(el, time, offsetX, offsetY, easing)
         this.scroll.scrollToElement(ele,0,0)
       }

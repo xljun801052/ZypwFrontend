@@ -1,57 +1,59 @@
 <template>
   <div class="comment_item">
     <Scroll ref="commentDetailRef">
-      <!--父评论信息-->
-      <div class="parentCommentContent">
-        <CommentNew
-          class="subComment"
-          :userAvatar="parentComment.userAvatar"
-          :username="parentComment.username"
-          :commentContent="parentComment.commentContent"
-          :commentTime="parentComment.commentTime"
-          :commentFavoriteCount="parentComment.commentFavoriteCount"
-          :isCurrentUserFavorite="parentComment.isCurrentUserFavorite"
-        />
-      </div>
-      <Divider solid class="seperateLine" />
+      <div id="commentDetail">
+        <!--parent comment info-->
+        <div class="parentCommentContent">
+          <CommentNew
+            :id="Number.parseInt(parentComment.id)"
+            :userAvatar="parentComment.userAvatar"
+            :username="parentComment.username"
+            :commentContent="parentComment.commentContent"
+            :commentTime="Number.parseInt(parentComment.commentTime)"
+            :commentFavoriteCount="parentComment.commentFavoriteCount"
+            :isCurrentUserFavorite="parentComment.isCurrentUserFavorite"
+          />
+        </div>
+        <Divider solid class="seperateLine" />
 
-      <!--子评论信息-->
-      <div
-        class="allSubComments"
-        v-for="(commentItem, index) in allSubComments"
-        :key="index"
-      >
-        <CommentNew
-          class="subComment"
-          :id="commentItem.id"
-          :parentId="commentItem.parentId"
-          :userAvatar="commentItem.avatar"
-          :username="commentItem.userName"
-          :commentContent="commentItem.content"
-          :commentTime="commentItem.commentTime"
-          :commentFavoriteCount="Number.parseInt(commentItem.favoriteCount)"
-          :isCurrentUserFavorite="commentItem.isCurrentUserFavorite"
-          @replySubComment="prepareForReply"
-        />
-        <Divider dashed class="seperateLine" />
-      </div>
+        <!--子评论信息-->
+        <div v-for="(commentItem, index) in allSubComments" :key="index">
+          <CommentNew
+            class="subComment"
+            :id="commentItem.id"
+            :parentId="commentItem.parentId"
+            :commentOwner="commentItem.commentOwner"
+            :userAvatar="commentItem.avatar"
+            :username="commentItem.userName"
+            :commentContent="commentItem.content"
+            :commentTime="commentItem.commentTime"
+            :commentFavoriteCount="Number.parseInt(commentItem.favoriteCount)"
+            :isCurrentUserFavorite="
+              Boolean(commentItem.isCurrentUserFavorite)
+            "
+            @replySubComment="prepareForReply"
+          />
+          <Divider dashed class="seperateLine" />
+        </div>
 
-      <!-- 发表评论部分 -->
-      <div class="releaseCommentArea">
-        <Editor
-          v-model="commentContent"
-          :init="init"
-          api-key="pdydaeaw072fplacdenbcb8lepf9j3gjob8m37s4sj7omj30"
-        >
-        </Editor>
-        <div class="commentInfoClick">
-          <Button
-            type="primary"
-            class="commentHandle"
-            @click="releaseReplyForSubComment"
-            >爷,说两句</Button
+        <!-- 发表评论部分 -->
+        <div class="releaseCommentArea">
+          <Editor
+            v-model="commentContent"
+            :init="init"
+            api-key="pdydaeaw072fplacdenbcb8lepf9j3gjob8m37s4sj7omj30"
+            class="editor"
           >
-          <Button type="dashed" class="commentHandle">缄默不言</Button>
+          </Editor>
+          <div class="commentInfoClick">
+            <Button
+              type="primary"
+              class="commentHandle"
+              @click="releaseReplyForSubComment"
+              >爷,说两句</Button
+            >
+            <Button type="dashed" class="commentHandle">缄默不言</Button>
+          </div>
         </div>
       </div>
     </Scroll>
@@ -88,6 +90,7 @@ export default {
         commentTime: "",
         commentFavoriteCount: 0,
         commentReplyCount: 0,
+        isCurrentUserFavorite: false,
       },
       currentReplySubCommentInfo: {
         replySubCommentId: 0,
@@ -108,18 +111,22 @@ export default {
            alignleft aligncenter alignright alignjustify | \
            bullist numlist outdent indent | removeformat | help",
         setup: function (editor) {
-          // editor.on("focus", function (data) {
-          // console.log(data.content, data.mode, data.source);
-          // console.log("focusing....");
-          // console.log(data);
-          // alert(window.parentComment.commentContent);
-          // this.commentContent = "rininainai";
-          // this.commentContent = '@'+this.currentReplySubCommentInfo.replySubCommentUser+':'+this.currentReplySubCommentInfo.replySubCommentContent
-          // Apply custom filtering by mutating data.content
-          // const content = data.content;
-          // const newContent = yourCustomFilter(content);
-          // data.content = newContent;
-          // });
+          editor.on("focus", function (data) {
+            console.log(data.content, data.mode, data.source);
+            console.log("focusing....");
+            console.log(data);
+            alert(window.parentComment.commentContent);
+            this.commentContent = "rininainai";
+            this.commentContent =
+              "@" +
+              this.currentReplySubCommentInfo.replySubCommentUser +
+              ":" +
+              this.currentReplySubCommentInfo.replySubCommentContent;
+            // Apply custom filtering by mutating data.content
+            const content = data.content;
+            const newContent = yourCustomFilter(content);
+            data.content = newContent;
+          });
         },
       },
     };
@@ -163,8 +170,9 @@ export default {
         subCommentInfo.username;
       this.currentReplySubCommentInfo.replySubCommentContent =
         subCommentInfo.commentContent;
-      // @todo 跳转到评论框并使其自动获取焦点，且光标位置需要定位在回复内容之后的下一行.
+      // @todo 跳转到评论框的时候使其自动获取光标焦点.
       // @todo 不能将textarea放在新加的评论上面，要不后面就识别不出来了。。。换了其他标签也没用
+      // @todo 回复时将原引用内容剔除掉
       // @todo 内部原评论需要将HTML标签移除
       // @todo 原评论需要加上跳转链接
       this.commentContent =
@@ -175,6 +183,9 @@ export default {
         ":\n" +
         this.currentReplySubCommentInfo.replySubCommentContent +
         "</textarea>";
+      // scroll to editor
+      let editorEle = document.querySelector(".releaseCommentArea");
+      this.$refs.commentDetailRef.scrollToElement(editorEle);
     },
     // get the subCommentContent info
     getSubCommentsContent(pid) {
@@ -206,14 +217,13 @@ export default {
         parentId: this.currentReplySubCommentInfo.replySubCommentId,
         content: this.commentContent,
         imgLinks: null,
-        // @todo:get the user info from vuex
-        commentOwner: 1,
+        commentOwner: this.$store.state.currentUserId,
         anonymousFlag: 0,
         favoriteCount: 0,
         replyCount: 0,
         commentTime: commentTime,
         modifyTime: commentTime,
-        validFlag:0
+        validFlag: 1,
       };
       homepageRequest({
         url: "comment/add",
@@ -225,20 +235,21 @@ export default {
       }).then((res) => {
         if (res.data.msg == "success") {
           this.allSubComments.unshift({
-            // @todo fill the comment id after the request
             id: res.data.data.commentId,
-            // @todo get the comment user info from vuex
-            userAvatar:
-              "https://himg.bdimg.com/sys/portraitn/item/dd75gd21301000000",
-            username: "妞妞宝宝sub",
-            commentContent: this.commentContent,
+            parentId: null,
+            commentOwner: this.$store.state.currentUserId,
+            avatar: this.$store.state.currentUserAvatar,
+            userName: this.$store.state.currentUserName,
+            content: this.commentContent,
             commentTime: commentTime,
-            commentFavoriteCount: 0,
-            commentReplyCount: 0,
-            isCurrentUserFavorite: 1,
+            favoriteCount: 0,
+            isCurrentUserFavorite: false,
           });
           this.commentContent = "";
           alert("添加评论成功!");
+          this.$refs.commentDetailRef.refresh();
+          let subComment_element = document.querySelectorAll(".subComment")[0];
+          this.$refs.commentDetailRef.scrollToElement(subComment_element);
         } else {
           alert("服务器休息了!请稍后再试...");
         }
@@ -264,7 +275,7 @@ export default {
 </script>
 
 <style scoped>
-.comment_item {
+#commentDetail {
   background: rgba(192, 243, 134, 0.8);
   border-radius: 5px;
 }

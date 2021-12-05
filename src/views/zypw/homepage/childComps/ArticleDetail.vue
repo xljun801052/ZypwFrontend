@@ -140,7 +140,7 @@ export default {
         replyCount: 0,
         commentTime: commentTime,
         modifyTime: null,
-        validFlag: 0,
+        validFlag: 1,
       };
       homepageRequest({
         url: "comment/add",
@@ -166,8 +166,7 @@ export default {
           alert("添加评论成功!");
           this.$refs.articleDetailScroll.refresh();
           let comment_element = document.querySelectorAll(".comment_item")[0]
-          console.log(comment_element)
-          this.$refs.articleDetailScroll.scrollToElement(comment_element,0,0)
+          this.$refs.articleDetailScroll.scrollToElement(comment_element)
         } else {
           alert("服务器休息了!请稍后再试...");
         }

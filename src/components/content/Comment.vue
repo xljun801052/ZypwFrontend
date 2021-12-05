@@ -15,12 +15,6 @@
         >
           <use :xlink:href="iconName"></use>
         </svg>
-        <!-- <img
-          src="~assets/imgs/utils/favorite.png"
-          alt=""
-          :class="{ favorite: isCurrentUserFavorite }"
-          @click="changeFavoriteStatus"
-        /> -->
         <div class="countPosition">
           {{ commentFavoriteCount }}
         </div>
@@ -145,6 +139,7 @@ export default {
           commentTime: Number.parseInt(this.commentTime),
           commentFavoriteCount: Number.parseInt(this.commentFavoriteCount),
           commentReplyCount: this.commentReplyCount,
+          isCurrentUserFavorite:this.isCurrentUserFavorite,
         },
       });
     },
@@ -176,7 +171,7 @@ export default {
           alert("点赞有点小问题");
         });
     },
-    // delete the comment.
+    // logic delete the comment.
     deleteComment() {
       homepageRequest({
         url: "/comment/delete/" + this.id,
